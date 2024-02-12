@@ -1,0 +1,94 @@
+{% extends 'first_application/index.html' %}
+
+{% block content %}
+
+<form id="StudentEdit">
+    {% csrf_token %} <!--it creates hidden value -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="form-group">
+                <label> Name </label>
+                <input type="text" id="name" class="form-control" value="{{tableform.name}}" >
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label> Address </label>
+                <input type="text" id="address" class="form-control" value="{{tableform.address}}" >
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label> Contact </label>
+                <input type="number" id="contact" class="form-control" maxlength="10" value="{{tableform.contact}}"
+                    required> <!-- name type should be matched with views -->
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label> email </label>
+                <input type="email" id="email" class="form-control" value="{{tableform.email}}" >
+                <!-- name type should be matched with views -->
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label> Edit </label>
+                <input type="button" id="editBtn" value="Edit" class="form-control btn btn-info" >
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock content %}
+
+
+{% block js %}
+<script>
+    $("#editBtn").off('click').on('click', function () {
+        // to get data
+        var data = {
+            "username": $("#name").val(),                              <!--you have to mention id -->
+            "address": $("#address").val(),
+            "contact": $("#contact").val(),
+            "email": $("#email").val()
+        }
+        //to pass data into views by using ajax
+        var token = $("#StudentEdit").find("input[name=csrfmiddlewaretoken]").val();
+        var id = "{{tableform.id}}"
+        $.ajax({
+            method: "POST",                   //which data 
+            url: `/edit/${id}`,            //where to send the data
+            headers: { "X-CSRFToken": token },
+            data: JSON.stringify(data),            //what to send
+            contentType: "application/json",
+            dataType: "json",                             //convertor jason 
+
+            success: function (response) {
+                toastr.success("Data  edit successfully saved.")
+                window.setTimeout(function () {
+                    window.location = "/list1";
+                }, 1000);
+            },
+            error: function (response) {
+            data = response.responseJSON;
+            if (data === undefined) {
+                toastr.error("Internal server error.")
+            }
+            else {
+                if (data.hasOwnProperty('error')) {
+                    var li = ''
+                    for (let i = 0; i < data['error'].length; i++) {
+                        li += '<li>' + data['error'][i] + '</li>'
+                    }
+                    toastr.error(li)
+                }
+                else {
+                    li = '<li>' + data['resultDescription'] + '</li>'
+                    toastr.error(li)
+                }
+            }
+        },
+        });
+    })
+</script>
+{% endblock js %}
